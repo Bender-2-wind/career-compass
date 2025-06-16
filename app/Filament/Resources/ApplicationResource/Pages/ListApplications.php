@@ -151,17 +151,15 @@ class ListApplications extends ListRecords
 
     private function createDocumentColumn(string $documentType, string $label): TextColumn
     {
-        return TextColumn::make("has_{$documentType}")
+        return TextColumn::make($documentType)
             ->icon('heroicon-o-document-text')
-            // ->badge()
             ->tooltip($label)
-            ->state(function (Application $record) use ($documentType, $label): string {
-                $hasDocument = $record->document?->{$documentType} !== null;
-                return "{$label}: " . ($hasDocument ? 'Yes' : 'No');
+            ->state(function (Application $record) use ($documentType): string {
+                $hasDocument = $record->{$documentType} !== null;
+                return $hasDocument ? 'Yes' : 'No';
             })
-            ->color(function (string $state) use ($label): string {
-                return str_contains($state, "{$label}: Yes") ? 'success' : 'gray';
-            });
+            ->badge()
+            ->color(fn (string $state): string => $state === 'Yes' ? 'success' : 'gray');
     }
 
     private function createMetricsRow(): Split

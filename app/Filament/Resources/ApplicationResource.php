@@ -3,20 +3,22 @@
 namespace App\Filament\Resources;
 
 use Filament\Forms;
+use Filament\Forms\Get;
 use Filament\Forms\Form;
 use App\Models\Application;
 use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Repeater;
-use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Actions\Action;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use App\Filament\Resources\ApplicationResource\Pages\EditApplication;
 use App\Filament\Resources\ApplicationResource\Pages\ViewApplication;
@@ -99,8 +101,7 @@ class ApplicationResource extends Resource
             Forms\Components\TextInput::make('application_link')
                 ->prefixIcon('heroicon-o-link')
                 ->required()
-                ->url()
-                ->maxLength(500),
+                ->url(),
         ])
         ->columns(['sm' => 1, 'md' => 2])
         ->columnSpanFull();
@@ -168,36 +169,35 @@ class ApplicationResource extends Resource
         ->columnSpanFull();
     }
 
-    private static function buildDocumentsGroup(): Group
+    private static function buildDocumentsGroup(): Grid
     {
-        return Group::make([
+        return Grid::make(['sm' => 1, 'md' => 2])
+        ->schema([
             self::buildFileUpload('resume', 'Resume'),
             self::buildFileUpload('cover_letter', 'Cover Letter'),
         ])
-        ->relationship('document')
-        ->columns(['sm' => 1, 'md' => 2])
         ->columnSpanFull();
     }
 
-    private static function buildFileUpload(string $type, string $label): FileUpload
+    private static function buildFileUpload(string $type, string $label): Group
     {
-        $originalNameField = $type === 'resume' ? 'resume_original_name' : 'cover_letter_original_name';
-        
-        return FileUpload::make($type)
-            ->label($label)
-            ->disk('public')
-            ->directory(fn ($get) => self::generateUploadDirectory($get('company_name'), $type))
-            ->acceptedFileTypes(self::ACCEPTED_FILE_TYPES)
-            ->visibility('public')
-            ->maxSize(self::MAX_FILE_SIZE)
-            ->downloadable()
-            ->openable()
-            ->storeFileNamesIn($originalNameField)
-            ->saveUploadedFileUsing(fn ($component, $file, $get) => 
-                self::saveUploadedFile($component, $file, $get, $type)
-            )
-            ->deletable()
-            ->deleteUploadedFileUsing(fn (string $file) => Storage::disk('public')->delete($file));
+        return Group::make([
+            FileUpload::make($type)
+                ->label($label)
+                ->disk('public')
+                ->directory(fn ($get) => self::generateUploadDirectory($get('../company_name'), $type))
+                ->acceptedFileTypes(self::ACCEPTED_FILE_TYPES)
+                ->visibility('public')
+                ->maxSize(self::MAX_FILE_SIZE)
+                ->downloadable()
+                ->openable()
+                ->saveUploadedFileUsing(fn ($component, $file, Get $get) => 
+                    self::saveUploadedFile($component, $file, $get, $type)
+                )
+                ->deletable()
+                ->deleteUploadedFileUsing(fn (string $file) => Storage::disk('public')->delete($file))
+        ])
+        ->relationship($type);
     }
 
     private static function generateUploadDirectory(string $companyName, string $type): string
@@ -215,7 +215,7 @@ class ApplicationResource extends Resource
         $userName = auth()->user()->name;
         $sanitizedUserName = Str::of($userName)->snake()->upper();
         
-        $companyName = $get('company_name');
+        $companyName = $get('../company_name');
         $sanitizedCompanyName = Str::of($companyName)->snake()->upper();
         
         $originalExtension = $file->getClientOriginalExtension();
@@ -224,6 +224,7 @@ class ApplicationResource extends Resource
         
         return $file->storeAs($component->getDirectory(), $filename, $component->getDiskName());
     }
+
 
     private static function buildNotesTab(): Tabs\Tab
     {
