@@ -14,9 +14,9 @@ class Resume extends Model
     {
         return $this->belongsTo(Application::class);
     }
+    
     protected $fillable = [
         'application_id',
         'resume',
-        'resume_original_name',
     ];
 }

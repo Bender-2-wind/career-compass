@@ -14,9 +14,9 @@ class CoverLetter extends Model
     {
         return $this->belongsTo(Application::class);
     }
-        protected $fillable = [
+    
+    protected $fillable = [
         'application_id',
         'cover_letter',
-        'cover_letter_original_name',
     ];
 }

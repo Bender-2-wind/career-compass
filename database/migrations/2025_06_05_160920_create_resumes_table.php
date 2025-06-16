@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('application_id')->references('id')->on('applications')->cascadeOnDelete();
             $table->string('resume')->nullable();
-            $table->string('resume_original_name')->nullable();
             $table->timestamps();
         });
     }
