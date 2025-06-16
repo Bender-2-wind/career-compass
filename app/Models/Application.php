@@ -41,11 +41,19 @@ class Application extends Model
         return $this->hasMany(Contact::class);
     }
     /**
-     * @return HasOne<Document,Application>
+     * @return HasOne<Resume,Application>
      */
-    public function document():HasOne
+    public function resume():HasOne
     {
-        return $this->hasOne(Document::class);
+        return $this->hasOne(Resume::class);
+    }
+
+    /**
+     * @return HasOne<CoverLetter,Application>
+     */
+    public function cover_letter():HasOne
+    {
+        return $this->hasOne(CoverLetter::class);
     }
 
     protected $fillable = [
