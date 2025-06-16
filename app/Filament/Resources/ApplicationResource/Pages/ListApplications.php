@@ -137,7 +137,7 @@ class ListApplications extends ListRecords
                 ->tooltip('Job Type')
                 ->icon('heroicon-o-briefcase')
                 ->searchable(),
-            $this->createDocumentColumn('cover_letter', 'Cover Letter'),
+            $this->createDocumentColumn('coverletter', 'Cover Letter'),
         ]);
     }
 
