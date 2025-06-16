@@ -71,6 +71,12 @@ Homestead.yaml
 .vscode
 *.sublime-workspace
 *.sublime-project
+.editorconfig
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+/.github/description.md
+/.github/release-notes-*.md
 
 # OS generated files
 .DS_Store
