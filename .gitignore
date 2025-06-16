@@ -80,3 +80,6 @@ Homestead.yaml
 .Trashes
 ehthumbs.db
 Thumbs.db
+yarn-error.log
+cspell.json
+ROADMAP.md
