@@ -123,7 +123,7 @@ class ListApplications extends ListRecords
                 ->tooltip('Location')
                 ->icon('heroicon-o-map-pin')
                 ->searchable(),
-            $this->createDocumentColumn('resume', 'Resume'),
+            $this->createDocumentColumn('resume', 'resume', 'Resume'),
         ]);
     }
 
@@ -137,7 +137,7 @@ class ListApplications extends ListRecords
                 ->tooltip('Job Type')
                 ->icon('heroicon-o-briefcase')
                 ->searchable(),
-            $this->createDocumentColumn('coverletter', 'Cover Letter'),
+            $this->createDocumentColumn('cover_letter', 'coverLetter', 'Cover Letter'),
         ]);
     }
 
@@ -149,17 +149,20 @@ class ListApplications extends ListRecords
             ]);
     }
 
-    private function createDocumentColumn(string $documentType, string $label): TextColumn
+    private function createDocumentColumn(string $column, string $relationship, string $label): TextColumn
     {
-        return TextColumn::make($documentType)
+        return TextColumn::make($column)
             ->icon('heroicon-o-document-text')
-            ->tooltip($label)
-            ->state(function (Application $record) use ($documentType): string {
-                $hasDocument = $record->{$documentType} !== null;
-                return $hasDocument ? 'Yes' : 'No';
+            // ->tooltip($label)
+            ->state(function (Application $record) use ($relationship, $label): string {
+                $hasDocument = $record->$relationship !== null;
+                // return $hasDocument ? 'Yes' : 'No';
+                return $hasDocument ? "$label: Yes" : "$label: No";
             })
-            ->badge()
-            ->color(fn (string $state): string => $state === 'Yes' ? 'success' : 'gray');
+            // ->badge()
+            ->color(function(string $state) use ($label): string {
+                return $state === "$label: Yes" ? 'success' : 'gray';
+            });
     }
 
     private function createMetricsRow(): Split

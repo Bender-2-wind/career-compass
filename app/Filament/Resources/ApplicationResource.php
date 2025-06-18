@@ -173,53 +173,71 @@ class ApplicationResource extends Resource
     {
         return Grid::make(['sm' => 1, 'md' => 2])
         ->schema([
-            self::buildFileUpload('resume', 'Resume'),
-            self::buildFileUpload('cover_letter', 'Cover Letter'),
+            self::buildFileUpload('resume', 'resume', 'Resume'),
+            self::buildFileUpload('coverLetter', 'cover_letter', 'Cover Letter'),
         ])
         ->columnSpanFull();
     }
 
-    private static function buildFileUpload(string $type, string $label): Group
+    private static function buildFileUpload(string $relationship, string $column, string $label): Group
     {
         return Group::make([
-            FileUpload::make($type)
+            FileUpload::make($column)
                 ->label($label)
                 ->disk('public')
-                ->directory(fn ($get) => self::generateUploadDirectory($get('../company_name'), $type))
+                ->directory(fn ($get) => self::generateUploadDirectory($get('../company_name'), $column))
                 ->acceptedFileTypes(self::ACCEPTED_FILE_TYPES)
                 ->visibility('public')
                 ->maxSize(self::MAX_FILE_SIZE)
                 ->downloadable()
                 ->openable()
                 ->saveUploadedFileUsing(fn ($component, $file, Get $get) => 
-                    self::saveUploadedFile($component, $file, $get, $type)
+                    self::saveUploadedFile($component, $file, $get, $column)
                 )
                 ->deletable()
-                ->deleteUploadedFileUsing(fn (string $file) => Storage::disk('public')->delete($file))
+                ->deleteUploadedFileUsing(function (string $file, $component) {
+                    // Delete the file from storage
+                    Storage::disk('public')->delete($file);
+                    
+                    // Get the relationship record and delete it
+                    $record = $component->getRecord();
+                    if ($record) {
+                        $record->delete(); // This deletes the entire relationship record
+                    }
+                })
         ])
-        ->relationship($type);
+        ->relationship(  
+            $relationship,  
+            condition: fn (?array $state): bool => filled($state[$column] ?? null)  
+        ); 
     }
 
-    private static function generateUploadDirectory(string $companyName, string $type): string
+    private static function generateUploadDirectory(string $companyName, string $column): string
     {
-        $sanitizedCompanyName = Str::of($companyName)->snake()->lower();
-        return "applications/{$sanitizedCompanyName}/{$type}";
+        $sanitizedCompanyName = Str::of($companyName)
+            ->replace([',', '.', '&', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '')
+            ->snake()
+            ->upper();
+        return "applications/{$sanitizedCompanyName}/{$column}";
     }
 
     private static function saveUploadedFile(
         FileUpload $component, 
         TemporaryUploadedFile $file, 
         $get, 
-        string $type
+        string $column
     ): string {
         $userName = auth()->user()->name;
         $sanitizedUserName = Str::of($userName)->snake()->upper();
         
         $companyName = $get('../company_name');
-        $sanitizedCompanyName = Str::of($companyName)->snake()->upper();
+        $sanitizedCompanyName = Str::of($companyName)
+            ->replace([',', '.', '&', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '')
+            ->snake()
+            ->upper();
         
         $originalExtension = $file->getClientOriginalExtension();
-        $typeLabel = $type === 'cover_letter' ? 'Cover_Letter' : strtoupper($type);
+        $typeLabel = $column === 'cover_letter' ? 'COVER_LETTER' : strtoupper($column);
         $filename = "{$sanitizedCompanyName}_{$sanitizedUserName}_{$typeLabel}.{$originalExtension}";
         
         return $file->storeAs($component->getDirectory(), $filename, $component->getDiskName());
@@ -238,10 +256,8 @@ class ApplicationResource extends Resource
                     ->grid(2)
                     ->schema([
                         Select::make('category')
-                            ->options(self::NOTE_CATEGORIES)
-                            ->required(),
-                        RichEditor::make('content')
-                            ->required(),
+                            ->options(self::NOTE_CATEGORIES),
+                        RichEditor::make('content'),
                     ])
                     ->mutateRelationshipDataBeforeCreateUsing(
                         fn (array $data) => self::filterEmptyNoteData($data)
@@ -264,7 +280,6 @@ class ApplicationResource extends Resource
                     ->grid(2)
                     ->schema([
                         TextInput::make('name')
-                            ->required()
                             ->maxLength(255),
                         TextInput::make('email')
                             ->prefixIcon('heroicon-o-envelope')
@@ -272,16 +287,14 @@ class ApplicationResource extends Resource
                             ->maxLength(255),
                         TextInput::make('phone')
                             ->prefixIcon('heroicon-o-phone')
-                            ->tel()
                             ->maxLength(20),
                         TextInput::make('linkedin_profile')
                             ->prefixIcon('heroicon-o-link')
                             ->url()
                             ->maxLength(500)
-                            ->hint(function ($state) {
-                                if (filled($state)) {
+                            ->hint(function ($state) {                                if (filled($state)) {
                                     return new HtmlString(
-                                        '<a href="' . $state . '" target="_blank" class="text-primary-600 hover:underline">View Profile</a>'
+                                        '<a href="' . $state . '" target="_blank" class="text-primary-600">View Profile</a>'
                                     );
                                 }
                                 return null;
@@ -308,7 +321,6 @@ class ApplicationResource extends Resource
                     ->relationship('tasks')
                     ->schema([
                         TextInput::make('title')
-                            ->required()
                             ->maxLength(255),
                         TextInput::make('description')
                             ->maxLength(500),

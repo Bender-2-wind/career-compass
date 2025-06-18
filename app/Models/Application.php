@@ -51,7 +51,7 @@ class Application extends Model
     /**
      * @return HasOne<CoverLetter,Application>
      */
-    public function cover_letter():HasOne
+    public function coverLetter():HasOne
     {
         return $this->hasOne(CoverLetter::class);
     }
