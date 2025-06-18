@@ -153,15 +153,17 @@ class ListApplications extends ListRecords
     {
         return TextColumn::make($column)
             ->icon('heroicon-o-document-text')
-            // ->tooltip($label)
-            ->state(function (Application $record) use ($relationship, $label): string {
+            ->state(function (Application $record) use ($relationship): bool {
                 $hasDocument = $record->$relationship !== null;
-                // return $hasDocument ? 'Yes' : 'No';
-                return $hasDocument ? "$label: Yes" : "$label: No";
+
+                return $hasDocument;
             })
-            // ->badge()
-            ->color(function(string $state) use ($label): string {
-                return $state === "$label: Yes" ? 'success' : 'gray';
+            ->formatStateUsing(function (bool $state) use ($label): string {
+                return $state ? $label : "<del>$label</del>";
+            })
+            ->html()
+            ->color(function(bool $state): string {
+                return $state ? 'success' : 'gray';
             });
     }
 
