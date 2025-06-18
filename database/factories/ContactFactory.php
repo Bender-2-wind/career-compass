@@ -26,7 +26,7 @@ class ContactFactory extends Factory
             'name' => "$firstName $lastName",
             'email' => strtolower("$firstName.$lastName") . $this->faker->randomNumber(2) . '@example.com',
             'phone' => $this->faker->phoneNumber(),
-            'linkedin_profile' => 'linkedin.com/in/' . strtolower("$firstName-$lastName") . $this->faker->randomNumber(2),
+            'linkedin_profile' => 'https://linkedin.com/in/' . strtolower("$firstName-$lastName") . $this->faker->randomNumber(2),
         ];
     }
 }
