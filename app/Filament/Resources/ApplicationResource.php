@@ -214,10 +214,7 @@ class ApplicationResource extends Resource
 
     private static function generateUploadDirectory(string $companyName, string $column): string
     {
-        $sanitizedCompanyName = Str::of($companyName)
-            ->replace([',', '.', '&', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '')
-            ->snake()
-            ->upper();
+        $sanitizedCompanyName = self::sanitizeInput($companyName);
         return "applications/{$sanitizedCompanyName}/{$column}";
     }
 
@@ -228,19 +225,24 @@ class ApplicationResource extends Resource
         string $column
     ): string {
         $userName = auth()->user()->name;
-        $sanitizedUserName = Str::of($userName)->snake()->upper();
+        $sanitizedUserName = self::sanitizeInput($userName);
         
         $companyName = $get('../company_name');
-        $sanitizedCompanyName = Str::of($companyName)
-            ->replace([',', '.', '&', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '')
-            ->snake()
-            ->upper();
+        $sanitizedCompanyName = self::sanitizeInput($companyName);
         
         $originalExtension = $file->getClientOriginalExtension();
         $typeLabel = $column === 'cover_letter' ? 'COVER_LETTER' : strtoupper($column);
         $filename = "{$sanitizedCompanyName}_{$sanitizedUserName}_{$typeLabel}.{$originalExtension}";
         
         return $file->storeAs($component->getDirectory(), $filename, $component->getDiskName());
+    }
+
+    private static function sanitizeInput(string $input): string
+    {
+        return Str::of($input)
+            ->replace([',', '.', '&', '/', '\\', ':', '*', '?', '"', '<', '>', '|', '-', "'"], '')
+            ->snake()
+            ->upper();
     }
 
 
