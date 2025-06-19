@@ -42,8 +42,10 @@
             "@php artisan filament:upgrade"
         ],
         "post-install-cmd": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan storage:link",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --seed"
         ],
         "post-update-cmd": [
