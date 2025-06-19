@@ -152,7 +152,7 @@ class ListApplications extends ListRecords
     private function createDocumentColumn(string $column, string $relationship, string $label): TextColumn
     {
         return TextColumn::make($column)
-            ->icon('heroicon-o-document-text')
+            ->icon(fn (bool $state): string => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
             ->state(function (Application $record) use ($relationship): bool {
                 $hasDocument = $record->$relationship !== null;
 
@@ -162,9 +162,8 @@ class ListApplications extends ListRecords
                 return $state ? $label : "<del>$label</del>";
             })
             ->html()
-            ->color(function(bool $state): string {
-                return $state ? 'success' : 'gray';
-            });
+            // ->formatStateUsing(fn (): string => $label)
+            ->color(fn (bool $state): string => $state ? 'success' : 'gray');
     }
 
     private function createMetricsRow(): Split

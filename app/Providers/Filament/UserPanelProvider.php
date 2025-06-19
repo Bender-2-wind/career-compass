@@ -25,6 +25,7 @@ class UserPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->spa()
             ->databaseNotifications()
             ->id('user')
             ->path('user')
