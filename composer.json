@@ -6,7 +6,7 @@
     "keywords": ["laravel", "job-tracker", "career", "application", "filament"],
     "homepage": "https://github.com/Bender-0/career-compass",
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "support": {
         "issues": "https://github.com/Bender-0/career-compass/issues",
         "source": "https://github.com/Bender-0/career-compass"

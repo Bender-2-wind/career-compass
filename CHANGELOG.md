@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-06-19
+### Added
+- Enhanced document management with separate Resume and Cover Letter handling
+- Improved file organization with dedicated storage directories
+
+### Changed
+- Refactored document storage structure for better scalability
+- Updated dependencies to their latest compatible versions
+
+### Fixed
+- Resolved issues with file downloads in the document management system
+- Fixed display issues in the application list view
+- Addressed minor UI/UX improvements and bug fixes
+
 ## [1.1.0] - 2025-06-16
 ### Added
 - User profile management system
