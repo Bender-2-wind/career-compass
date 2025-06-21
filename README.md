@@ -116,7 +116,7 @@ Follow these steps to set up CareerCompass locally:
         2.  After `composer install` has run, open the newly created `.env` file.
         3.  Fill in your database credentials:
             ```
-            DB_CONNECTION=mysql # Or postgres
+            DB_CONNECTION=mysql # Or pgsql for PostgreSQL
             DB_HOST=127.0.0.1
             DB_PORT=3306 # Or 5432 for PostgreSQL
             DB_DATABASE=career_compass
