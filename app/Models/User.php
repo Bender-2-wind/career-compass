@@ -26,6 +26,11 @@ class User extends Authenticatable
         return $this->hasOne(Resume::class);
     }
 
+    public function profile(): HasOne
+    {
+        return $this->hasOne(Profile::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
