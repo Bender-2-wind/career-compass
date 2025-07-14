@@ -13,12 +13,15 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Repeater;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Actions\Action;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use App\Filament\Resources\ApplicationResource\Pages\EditApplication;
 use App\Filament\Resources\ApplicationResource\Pages\ViewApplication;
@@ -59,6 +62,7 @@ class ApplicationResource extends Resource
             Tabs::make('Tabs')
                 ->tabs([
                     self::buildApplicationTab(),
+                    self::buildDocumentsTab(),
                     self::buildNotesTab(),
                     self::buildContactsTab(),
                     self::buildTasksTab(),
@@ -103,8 +107,42 @@ class ApplicationResource extends Resource
                 ->required()
                 ->url(),
         ])
-        ->columns(['sm' => 1, 'md' => 2])
-        ->columnSpanFull();
+            ->columns(['sm' => 1, 'md' => 2])
+            ->columnSpanFull();
+    }
+
+    private static function buildDocumentsTab(): Tabs\Tab
+    {
+        return Tabs\Tab::make('Documents')
+            ->icon('heroicon-o-document-text')
+            // ->badge(function ($record) {
+            //     $resume = $record->resume?->count();
+            //     $coverLetter = $record->coverLetter?->count();
+            //     return $resume + $coverLetter;
+            // })
+            ->schema([
+                Tabs::make('Tabs')
+                    ->tabs([
+                        Tabs\Tab::make('Resume Writer')
+                            ->schema([
+                                Section::make()
+                                    ->description('in here you can generate your resume')
+                                    ->schema([
+                                        ViewField::make('resume_writer')
+                                            ->view('filament.agents.resume-writer'),
+                                    ]),
+                            ]),
+                        Tabs\Tab::make('Cover Letter Writer')
+                            ->schema([
+                                Section::make()
+                                    ->description('in here you can generate your cover letter')
+                                    ->schema([
+                                        ViewField::make('cover_letter_writer')
+                                            ->view('filament.agents.cover-letter-writer'),
+                                    ]),
+                            ]),
+                    ])
+            ]);
     }
 
     private static function buildApplicationStatusGroup(): Group
@@ -125,8 +163,8 @@ class ApplicationResource extends Resource
                 ->required()
                 ->maxLength(100),
         ])
-        ->columns(['sm' => 1, 'md' => 2])
-        ->columnSpanFull();
+            ->columns(['sm' => 1, 'md' => 2])
+            ->columnSpanFull();
     }
 
     private static function buildJobDescriptionField(): Forms\Components\RichEditor
@@ -147,9 +185,9 @@ class ApplicationResource extends Resource
                 ->options(self::TYPE_OPTIONS)
                 ->default('remote')
                 ->required(),
-            ])
-        ->columns(['sm' => 1, 'md' => 2])
-        ->columnSpanFull();
+        ])
+            ->columns(['sm' => 1, 'md' => 2])
+            ->columnSpanFull();
     }
 
     private static function buildJobDateGroup(): Group
@@ -165,18 +203,22 @@ class ApplicationResource extends Resource
                 ->displayFormat('d M, Y')
                 ->after('posted_date'),
         ])
-        ->columns(['sm' => 1, 'md' => 2])
-        ->columnSpanFull();
+            ->columns(['sm' => 1, 'md' => 2])
+            ->columnSpanFull();
     }
 
-    private static function buildDocumentsGroup(): Grid
+    private static function buildDocumentsGroup(): Section
     {
-        return Grid::make(['sm' => 1, 'md' => 2])
-        ->schema([
-            self::buildFileUpload('resume', 'resume', 'Resume'),
-            self::buildFileUpload('coverLetter', 'cover_letter', 'Cover Letter'),
-        ])
-        ->columnSpanFull();
+        return Section::make('Documents')
+            ->description('if you have costumized your resume or cover letter, you can upload them here or you can generate them in the documents tab')
+            ->schema([
+                Grid::make(['sm' => 1, 'md' => 2])
+                    ->schema([
+                        self::buildFileUpload('resume', 'resume', 'Resume'),
+                        self::buildFileUpload('coverLetter', 'cover_letter', 'Cover Letter'),
+                    ])
+                    ->columnSpanFull(),
+            ]);
     }
 
     private static function buildFileUpload(string $relationship, string $column, string $label): Group
@@ -185,20 +227,21 @@ class ApplicationResource extends Resource
             FileUpload::make($column)
                 ->label($label)
                 ->disk('public')
-                ->directory(fn ($get) => self::generateUploadDirectory($get('../company_name'), $column))
+                ->directory(fn($get) => self::generateUploadDirectory($get('../company_name'), $column))
                 ->acceptedFileTypes(self::ACCEPTED_FILE_TYPES)
                 ->visibility('public')
                 ->maxSize(self::MAX_FILE_SIZE)
                 ->downloadable()
                 ->openable()
-                ->saveUploadedFileUsing(fn ($component, $file, Get $get) => 
+                ->saveUploadedFileUsing(
+                    fn($component, $file, Get $get) =>
                     self::saveUploadedFile($component, $file, $get, $column)
                 )
                 ->deletable()
                 ->deleteUploadedFileUsing(function (string $file, $component) {
                     // Delete the file from storage
                     Storage::disk('public')->delete($file);
-                    
+
                     // Get the relationship record and delete it
                     $record = $component->getRecord();
                     if ($record) {
@@ -206,10 +249,10 @@ class ApplicationResource extends Resource
                     }
                 })
         ])
-        ->relationship(  
-            $relationship,  
-            condition: fn (?array $state): bool => filled($state[$column] ?? null)  
-        ); 
+            ->relationship(
+                $relationship,
+                condition: fn(?array $state): bool => filled($state[$column] ?? null)
+            );
     }
 
     private static function generateUploadDirectory(string $companyName, string $column): string
@@ -219,21 +262,21 @@ class ApplicationResource extends Resource
     }
 
     private static function saveUploadedFile(
-        FileUpload $component, 
-        TemporaryUploadedFile $file, 
-        $get, 
+        FileUpload $component,
+        TemporaryUploadedFile $file,
+        $get,
         string $column
     ): string {
         $userName = auth()->user()->name;
         $sanitizedUserName = self::sanitizeInput($userName);
-        
+
         $companyName = $get('../company_name');
         $sanitizedCompanyName = self::sanitizeInput($companyName);
-        
+
         $originalExtension = $file->getClientOriginalExtension();
         $typeLabel = $column === 'cover_letter' ? 'COVER_LETTER' : strtoupper($column);
         $filename = "{$sanitizedCompanyName}_{$sanitizedUserName}_{$typeLabel}.{$originalExtension}";
-        
+
         return $file->storeAs($component->getDirectory(), $filename, $component->getDiskName());
     }
 
@@ -262,9 +305,10 @@ class ApplicationResource extends Resource
                         RichEditor::make('content'),
                     ])
                     ->mutateRelationshipDataBeforeCreateUsing(
-                        fn (array $data) => self::filterEmptyNoteData($data)
+                        fn(array $data) => self::filterEmptyNoteData($data)
                     )
-                    ->itemLabel(fn (array $state): ?string => 
+                    ->itemLabel(
+                        fn(array $state): ?string =>
                         $state['category'] ?? 'New Note'
                     ),
             ]);
@@ -294,7 +338,8 @@ class ApplicationResource extends Resource
                             ->prefixIcon('heroicon-o-link')
                             ->url()
                             ->maxLength(500)
-                            ->hint(function ($state) {                                if (filled($state)) {
+                            ->hint(function ($state) {
+                                if (filled($state)) {
                                     return new HtmlString(
                                         '<a href="' . $state . '" target="_blank" class="text-primary-600">View Profile</a>'
                                     );
@@ -303,9 +348,10 @@ class ApplicationResource extends Resource
                             }),
                     ])
                     ->mutateRelationshipDataBeforeCreateUsing(
-                        fn (array $data) => self::filterEmptyContactData($data)
+                        fn(array $data) => self::filterEmptyContactData($data)
                     )
-                    ->itemLabel(fn (array $state): ?string => 
+                    ->itemLabel(
+                        fn(array $state): ?string =>
                         $state['name'] ?? 'New Contact'
                     ),
             ]);
@@ -330,9 +376,10 @@ class ApplicationResource extends Resource
                             ->default(false),
                     ])
                     ->mutateRelationshipDataBeforeCreateUsing(
-                        fn (array $data) => self::filterEmptyTaskData($data)
+                        fn(array $data) => self::filterEmptyTaskData($data)
                     )
-                    ->itemLabel(fn (array $state): ?string => 
+                    ->itemLabel(
+                        fn(array $state): ?string =>
                         $state['title'] ?? 'New Task'
                     ),
             ]);
@@ -342,7 +389,7 @@ class ApplicationResource extends Resource
     private static function filterEmptyNoteData(array $data): ?array
     {
         $isCategoryEmpty = empty($data['category']);
-        $isContentEmpty = empty($data['content']) || 
+        $isContentEmpty = empty($data['content']) ||
             Str::of(strip_tags($data['content']))->trim()->isEmpty();
 
         return ($isCategoryEmpty && $isContentEmpty) ? null : $data;
@@ -350,10 +397,10 @@ class ApplicationResource extends Resource
 
     private static function filterEmptyContactData(array $data): ?array
     {
-        $isEmpty = empty($data['name']) && 
-                  empty($data['email']) && 
-                  empty($data['phone']) && 
-                  empty($data['linkedin_profile']);
+        $isEmpty = empty($data['name']) &&
+            empty($data['email']) &&
+            empty($data['phone']) &&
+            empty($data['linkedin_profile']);
 
         return $isEmpty ? null : $data;
     }
