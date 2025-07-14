@@ -19,7 +19,6 @@ class AccountSettings extends Page
             'pages.auth.password-form-component',
             'pages.auth.browser-sessions-form-component',
             'pages.auth.delete-account-form-component',
-            'pages.auth.resume-file-upload-form-component',
         ];
 
         return $forms;

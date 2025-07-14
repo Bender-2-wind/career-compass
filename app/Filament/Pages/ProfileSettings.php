@@ -15,7 +15,8 @@ class ProfileSettings extends Page
     protected function getForms(): array
     {
         $forms = [
-            'pages.auth.resume-file-upload-form-component',
+            // 'pages.auth.resume-file-upload-form-component',
+            'pages.auth.user-profile-form',
         ];
 
         return $forms;
