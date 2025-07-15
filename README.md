@@ -6,6 +6,12 @@
 
 ---
 
+## 🚧 Work in Progress
+
+CareerCompass is currently in active development
+
+---
+
 ## 📋 Overview
 
 CareerCompass is a sophisticated web application designed to empower job seekers with powerful organization tools for their career search. In today's competitive job market, staying organized is key to success - and CareerCompass delivers the perfect solution with its intuitive interface and comprehensive tracking capabilities.
