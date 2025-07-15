@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('application_id')->references('id')->on('applications');
+            $table->foreignId('application_id')->references('id')->on('applications')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('type', ['personal', 'professional', 'other'])->default('personal');
