@@ -6,11 +6,12 @@ use LarAgent\Agent;
 
 class ResumeParserAgent extends Agent
 {
-    protected $model = 'gemini-2.0-flash';
+    // protected $model = 'gemini-2.0-flash';
+    protected $model = env('AI_MODEL');
 
     protected $history = 'in_memory';
 
-    protected $provider = 'gemini';
+    protected $provider = env('AI_PROVIDER');
 
     protected $temperature = 0.2;
 
