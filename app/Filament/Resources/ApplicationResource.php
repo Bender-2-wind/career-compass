@@ -128,8 +128,11 @@ class ApplicationResource extends Resource
                                 Section::make()
                                     ->description('in here you can generate your resume')
                                     ->schema([
-                                        ViewField::make('resume_writer')
-                                            ->view('filament.agents.resume-writer'),
+                                        TextInput::make('resume_writer')
+                                            ->disabled()
+                                            
+                                        // ViewField::make('resume_writer')
+                                        //     ->view('filament.agents.resume-writer'),
                                     ]),
                             ]),
                         Tabs\Tab::make('Cover Letter Writer')
@@ -137,8 +140,11 @@ class ApplicationResource extends Resource
                                 Section::make()
                                     ->description('in here you can generate your cover letter')
                                     ->schema([
-                                        ViewField::make('cover_letter_writer')
-                                            ->view('filament.agents.cover-letter-writer'),
+                                        TextInput::make('cover_letter_writer')
+                                            ->disabled()
+                                            
+                                        // ViewField::make('cover_letter_writer')
+                                        //     ->view('filament.agents.cover-letter-writer'),
                                     ]),
                             ]),
                     ])
